@@ -42,4 +42,5 @@ const SimilarRecipes = ({ recipes, category }) => {
   );
 };
 
+
 export default SimilarRecipes;
