@@ -1,63 +1,81 @@
+
+
 import React, { useEffect, useState } from "react";
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
-import { recipeOptions, fetchData } from "../utils/fetchData";
+import { searchOptions, recipeListOptions, fetchData } from "../utils/fetchData";
 import HorizontalScrollbar from "./HorizontalScrollbar";
 
 const SearchRecipes = ({ setRecipes, list, setList }) => {
   const [search, setSearch] = useState("");
   const [lists, setLists] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchRecipeCategories = async () => {
       try {
-        const response = await fetchData(
-          "https://tasty.p.rapidapi.com/recipes/auto-complete",
-          recipeOptions
-          // "https://tasty.p.rapidapi.com/tags/list",
-          // recipeOptions
-        );
-        console.log("Tags Response:", response); // Log the response
+        // Start with default categories
+        const defaultCategories = ["all", "breakfast", "lunch", "dinner"];
+        setLists(defaultCategories);
 
-        if (response && response.results) {
-          // Filter the tags to include only 'lunch', 'dinner', and 'breakfast'
-          const selectedTags = response.results.filter((item) =>
-            ["lunch", "dinner", "breakfast"].includes(item.name.toLowerCase())
-          );
-          console.log("Selected Tags:", selectedTags); // Log the filtered tags
-          setLists(["all", ...selectedTags.map((tag) => tag.name)]);
+        const response = await fetchData(
+          "https://tasty-api1.p.rapidapi.com/recipes/list",
+          recipeListOptions
+        );
+        
+        if (response?.results) {
+          setRecipes(response.results);
         }
       } catch (error) {
-        console.error("Error fetching tags:", error);
+        console.error("Error fetching initial data:", error);
+        setError("Failed to load recipes. Please try again later.");
       }
     };
 
-    fetchTags();
-  }, []);
+    fetchRecipeCategories();
+  }, [setRecipes]);
 
-  // Handle the search functionality
   const handleSearch = async () => {
-    if (search) {
-      try {
-        const response = await fetchData(
-          "https://tasty.p.rapidapi.com/recipes/list",
-          recipeOptions
-        );
-        console.log("Recipes Response:", response); // Log the response
+    if (!search.trim()) return;
 
-        if (response && response.results) {
-          const searchedRecipes = response.results.filter((recipe) =>
-            recipe.name.toLowerCase().includes(search.toLowerCase())
-          );
-          console.log("Searched Recipes:", searchedRecipes); // Log the filtered recipes
-          setRecipes(searchedRecipes);
-        }
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const options = {
+        ...searchOptions,
+        params: {
+          ...searchOptions.params,
+          q: search.trim(),
+        },
+      };
+
+      
+      const response = await fetchData(
+        "https://tasty-api1.p.rapidapi.com/recipes/list",  // Updated URL to include "api1"
+        options
+      );
+
+      if (response?.results) {
+        setRecipes(response.results);
+      } else {
+        setRecipes([]);
+        setError("No recipes found. Try a different search term.");
       }
-
-      setSearch("");
+    } catch (error) {
+      console.error("Error searching recipes:", error);
+      setError("Failed to search recipes. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <Stack alignItems="center" mt="37px" justifyContent="center" p="20px">
       <Typography
@@ -79,9 +97,13 @@ const SearchRecipes = ({ setRecipes, list, setList }) => {
           }}
           height="76px"
           value={search}
-          onChange={(e) => setSearch(e.target.value.toLowerCase())}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Search Recipes"
           type="text"
+          disabled={isLoading}
+          error={!!error}
+          helperText={error}
         />
         <Button
           className="search-btn"
@@ -94,12 +116,21 @@ const SearchRecipes = ({ setRecipes, list, setList }) => {
             height: "56px",
             position: "absolute",
             right: "0",
+            "&:disabled": {
+              bgcolor: "#cccccc",
+            },
           }}
           onClick={handleSearch}
+          disabled={isLoading || !search.trim()}
         >
-          Search
+          {isLoading ? "Searching..." : "Search"}
         </Button>
       </Box>
+      {error && (
+        <Typography color="error" mb={2}>
+          {error}
+        </Typography>
+      )}
       <Box sx={{ position: "relative", width: "100%", p: "20px" }}>
         <HorizontalScrollbar data={lists} list={list} setList={setList} />
       </Box>

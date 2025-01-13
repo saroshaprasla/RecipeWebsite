@@ -9,11 +9,14 @@ const Home = () => {
   const [list, setList] = useState("all");
   const [recipes, setRecipes] = useState([]);
 
+  console.log(list)
+
   return (
     <Box>
       <HeroBanner />
       <SearchRecipes setRecipes={setRecipes} list={list} setList={setList} />
-      <Recipes setRecipes={setRecipes} list={list} recipes={recipes} />
+     <Recipes recipes={recipes} setRecipes={setRecipes} list={list} />
+     
     </Box>
   );
 };

@@ -28,16 +28,16 @@ body {
   font-size: 25px;
   border-radius: 4px;
   position: absolute;
-  bottom: 20px; /* Same for both arrows */
-  z-index: 1000; /* Ensure they are on top */
+  bottom: 20px; 
+  z-index: 1000; 
 }
 
 .right-arrow {
-  right: 20px; /* Adjust as needed */
+  right: 20px; 
 }
 
 .left-arrow {
-  left: 20px; /* Adjust as needed */
+  left: 20px; 
 }
 
 .right-arrow:hover,
@@ -47,7 +47,7 @@ body {
 }
 
 .scroll-menu-container {
-  position: relative; /* Ensure this container has a relative position */
+  position: relative; 
 }
 
 .react-horizontal-scrolling-menu--wrapper {
