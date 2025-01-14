@@ -2,7 +2,7 @@
 export const baseOptions = {
   method: "GET",
   headers: {
-    'x-rapidapi-host': 'tasty-api1.p.rapidapi.com', // Added quotes here
+    'x-rapidapi-host': 'tasty.p.rapidapi.com', // Added quotes here
     "x-rapidapi-key": process.env.REACT_APP_RAPID_API_KEY,
   },
 };

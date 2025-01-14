@@ -19,7 +19,7 @@ const SearchRecipes = ({ setRecipes, list, setList }) => {
         setLists(defaultCategories);
 
         const response = await fetchData(
-          "https://tasty-api1.p.rapidapi.com/recipes/list",
+          "https://tasty.p.rapidapi.com/recipes/list",
           recipeListOptions
         );
         
@@ -52,7 +52,7 @@ const SearchRecipes = ({ setRecipes, list, setList }) => {
 
       
       const response = await fetchData(
-        "https://tasty-api1.p.rapidapi.com/recipes/list",  // Updated URL to include "api1"
+        "https://tasty.p.rapidapi.com/recipes/list",  // Updated URL to include "api1"
         options
       );
 
