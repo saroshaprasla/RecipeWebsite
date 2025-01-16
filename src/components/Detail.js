@@ -1,115 +1,93 @@
+// Detail.js
 import React from 'react';
-import { Typography, Stack, Button, Box } from '@mui/material';
+import { Stack, Typography, Box } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PeopleIcon from '@mui/icons-material/People';
 
 const Detail = ({ recipeDetail }) => {
-  const { 
-    name, 
-    description,
-    instructions,
-    sections,
-    total_time_minutes,
+  const {
+    name,
+    cook_time_minutes,
     num_servings,
     thumbnail_url,
-    beauty_url
+    description,
+    instructions = [],
+    sections = []
   } = recipeDetail;
 
-  const imageUrl = beauty_url || thumbnail_url;
-
-  // Extract ingredients from sections
-  const ingredients = sections?.flatMap(section => 
-    section.components?.map(component => component.raw_text)
-  ) || [];
-
-  // Format instructions if they're in steps
-  const formattedInstructions = instructions?.map(instruction => 
-    instruction.display_text || instruction
-  ) || [];
+  const ingredients = sections.flatMap(section => section.components || []);
 
   return (
-    <Stack gap="60px" sx={{ flexDirection: { lg: 'row' }, p: '20px', alignItems: 'center' }}>
-      <img 
-        src={imageUrl} 
-        alt={name} 
-        loading="lazy" 
-        className="detail-image" 
-        style={{ 
-          width: '400px', 
-          height: '400px', 
-          objectFit: 'cover',
-          borderRadius: '20px'
-        }} 
-      />
-      
-      <Stack sx={{ gap: { lg: '35px', xs: '20px' } }}>
-        <Typography variant="h3" textTransform="capitalize">
+    <Stack gap={4} sx={{ flexDirection: { lg: 'row' }, p: 4, alignItems: 'flex-start' }}>
+      {/* Left side - Image */}
+      <Box sx={{ maxWidth: { lg: '50%' }, width: '100%' }}>
+        <img 
+          src={thumbnail_url} 
+          alt={name}
+          style={{
+            width: '100%',
+            maxHeight: '500px',
+            objectFit: 'cover',
+            borderRadius: '8px'
+          }}
+        />
+        
+        <Stack direction="row" gap={4} mt={4}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#ffd700', p: 2, borderRadius: '8px' }}>
+            <AccessTimeIcon />
+            <Typography>{cook_time_minutes || 0} minutes</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#ffd700', p: 2, borderRadius: '8px' }}>
+            <PeopleIcon />
+            <Typography>{num_servings || 0} servings</Typography>
+          </Box>
+        </Stack>
+      </Box>
+
+      {/* Right side - Recipe Details */}
+      <Stack sx={{ maxWidth: { lg: '50%' }, width: '100%' }} gap={3}>
+        <Typography variant="h4" fontWeight="bold">
           {name}
         </Typography>
-        
+
         {description && (
-          <Typography variant="h6">
+          <Typography variant="body1">
             {description}
           </Typography>
         )}
 
-        <Stack direction="row" gap="24px" alignItems="center">
-          {total_time_minutes && (
-            <Button
-              sx={{
-                background: '#ffa9a9',
-                borderRadius: '20px',
-                textTransform: 'capitalize',
-                color: 'white'
-              }}
-            >
-              Cook Time: {total_time_minutes} mins
-            </Button>
-          )}
-          {num_servings && (
-            <Button
-              sx={{
-                background: '#fcc757',
-                borderRadius: '20px',
-                textTransform: 'capitalize',
-                color: 'white'
-              }}
-            >
-              Servings: {num_servings}
-            </Button>
-          )}
-        </Stack>
-
-        {ingredients.length > 0 && (
-          <>
-            <Typography variant="h5" mt={2}>
-              Ingredients:
+        {/* Ingredients */}
+        <Box>
+          <Typography variant="h5" fontWeight="bold" mb={2}>
+            Ingredients
+          </Typography>
+          {ingredients.map((item, index) => (
+            <Typography key={index} variant="body1" mb={1}>
+              • {item.raw_text}
             </Typography>
-            <Box>
-              {ingredients.map((item, index) => (
-                <Typography key={index} variant="body1" sx={{ marginY: '5px' }}>
-                  • {item}
-                </Typography>
-              ))}
-            </Box>
-          </>
-        )}
+          ))}
+        </Box>
 
-        {formattedInstructions.length > 0 && (
-          <>
-            <Typography variant="h5" mt={2}>
-              Instructions:
-            </Typography>
-            <Box>
-              {formattedInstructions.map((step, index) => (
-                <Typography key={index} variant="body1" mb={2}>
-                  {index + 1}. {step}
-                </Typography>
-              ))}
+        {/* Instructions */}
+        <Box>
+          <Typography variant="h5" fontWeight="bold" mb={2}>
+            Instructions
+          </Typography>
+          {instructions.map((instruction, index) => (
+            <Box key={index} mb={2}>
+              <Typography variant="body1">
+                <strong>{index + 1}.</strong> {instruction.display_text}
+              </Typography>
             </Box>
-          </>
-        )}
+          ))}
+        </Box>
       </Stack>
     </Stack>
   );
 };
 
 export default Detail;
+
+
+
+

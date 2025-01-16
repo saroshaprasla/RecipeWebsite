@@ -1,46 +1,38 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import RecipeCard from './RecipeCard';
+import { Typography, Box, Stack } from '@mui/material';
+import HorizontalScrollbar from './HorizontalScrollbar';
+import Loader from './Loader';
 
-const SimilarRecipes = ({ recipes, category }) => {
-  if (!recipes?.length) return null;
-
-  return (
-    <Box sx={{ mt: { lg: '50px', xs: '20px' } }}>
-      <Typography 
-        variant="h4" 
-        mb={3}
-        sx={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          color: '#2d2d2d'
-        }}
-      >
-        More {category} Recipes You May Like
-      </Typography>
-
-      <Box 
-        sx={{ 
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: '1fr 1fr',
-            md: '1fr 1fr 1fr'
-          },
-          gap: '20px',
-          justifyContent: 'center'
-        }}
-      >
-        {recipes.slice(0, 3).map((recipe) => (
-          <RecipeCard 
-            key={recipe.id} 
-            recipe={recipe}
-          />
-        ))}
-      </Box>
-    </Box>
-  );
-};
-
+const SimilarRecipes = ({ targetIngrediantRecipes }) => (
+  <Box sx={{ mt: { lg: '100px', xs: '0px' } }}>
+    <Typography 
+      sx={{ 
+        fontSize: { lg: '44px', xs: '25px' }, 
+        ml: '20px' 
+      }} 
+      fontWeight={700} 
+      color="#000" 
+      mb="33px"
+    >
+      More recipes with similar <span style={{ color: '#FF2625', textTransform: 'capitalize' }}>ingredients</span>
+    </Typography>
+    <Stack direction="row" sx={{ p: 2, position: 'relative' }}>
+      {targetIngrediantRecipes?.length !== 0 ? (
+        <HorizontalScrollbar 
+          data={targetIngrediantRecipes} 
+          isLists={false}
+        />
+      ) : (
+        <Loader />
+      )}
+    </Stack>
+  </Box>
+);
 
 export default SimilarRecipes;
+
+
+
+
+
+

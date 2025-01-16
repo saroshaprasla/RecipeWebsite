@@ -1,4 +1,33 @@
 
+.react-horizontal-scrolling-menu--wrapper {
+  width: 100%;
+}
+
+.react-horizontal-scrolling-menu--scroll-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 0 40px;
+}
+
+@media screen and (max-width: 768px) {
+  .recipe-card {
+    width: 280px;
+  }
+  
+  .right-arrow,
+  .left-arrow {
+    display: none;
+  }
+  
+  .react-horizontal-scrolling-menu--scroll-container {
+    padding: 0 10px;
+  }
+} 
+
+
 body {
   font-family: 'Josefin Sans';
   background-color: #FFFAFB;

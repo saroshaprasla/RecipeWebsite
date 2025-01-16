@@ -1,119 +1,75 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, CircularProgress, Typography } from '@mui/material';
-import { baseOptions, fetchData } from '../utils/fetchData';
+import { Box } from '@mui/material';
 
 import Detail from '../components/Detail';
-import Recentarticles from '../components/RecentArticles';
+import RecipeVideos from '../components/RecipeVideos';
 import SimilarRecipes from '../components/SimilarRecipes';
 
 const RecipeDetail = () => {
   const [recipeDetail, setRecipeDetail] = useState(null);
   const [recipeVideos, setRecipeVideos] = useState([]);
-  const [similarRecipes, setSimilarRecipes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [targetIngrediantRecipes, setTargetIngrediantRecipes] = useState([]);
   const { id } = useParams();
 
   useEffect(() => {
     const fetchRecipeData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      console.log('Fetching recipe with ID:', id);
-      console.log('Using baseOptions:', baseOptions);
-
       try {
-        // Try getting the recipe directly first
-        const directRecipeResponse = await fetchData(
-          `https://tasty.p.rapidapi.com/recipes/get-more-info`,
-          {
-            ...baseOptions,
-            params: {
-              id: id
-            }
+        const recipeOptions = {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': '193af496famshd53dbfc9801ee71p12b3e3jsn2593c500ab6f',
+            'x-rapidapi-host': 'tasty.p.rapidapi.com'
           }
-        );
+        };
 
-        console.log('Direct recipe response:', directRecipeResponse);
+        // Fetch current recipe details
+        const recipeDetailData = await fetch(
+          `https://tasty.p.rapidapi.com/recipes/get-more-info?id=${id}`,
+          recipeOptions
+        ).then(res => res.json());
 
-        if (directRecipeResponse) {
-          setRecipeDetail(directRecipeResponse);
+        setRecipeDetail(recipeDetailData);
 
-          // Get similar recipes if we have the recipe
-          try {
-            const similarResponse = await fetchData(
-              'https://tasty.p.rapidapi.com/recipes/list',
-              {
-                ...baseOptions,
-                params: {
-                  from: '0',
-                  size: '3',
-                  tags: directRecipeResponse.tags?.[0]?.name || 'main course'
-                }
-              }
-            );
-            console.log('Similar recipes response:', similarResponse);
-            setSimilarRecipes(similarResponse?.results || []);
-          } catch (similarError) {
-            console.error('Error fetching similar recipes:', similarError);
-          }
+        // Get main ingredients - take up to 3 main ingredients
+        const mainIngredients = recipeDetailData.sections?.[0]?.components
+          ?.slice(0, 3)
+          ?.map(comp => comp.ingredient?.name)
+          ?.filter(Boolean);
 
-          // Get YouTube videos
-          try {
-            const youtubeResponse = await fetchData(
-              'https://youtube-search-and-download.p.rapidapi.com/search',
-              {
-                method: 'GET',
-                headers: {
-                  'x-rapidapi-key': baseOptions.headers['x-rapidapi-key'],
-                  'x-rapidapi-host': 'youtube-search-and-download.p.rapidapi.com'
-                },
-                params: {
-                  query: `${directRecipeResponse.name} recipe cooking`
-                }
-              }
-            );
-            console.log('YouTube response:', youtubeResponse);
-            setRecipeVideos(youtubeResponse?.contents || []);
-          } catch (videoError) {
-            console.error('Error fetching videos:', videoError);
-          }
-        } else {
-          throw new Error('Recipe not found in direct lookup');
+        // Fetch similar recipes based on ingredients
+        if (mainIngredients?.length) {
+          const similarResponse = await fetch(
+            `https://tasty.p.rapidapi.com/recipes/list?from=0&size=12&q=${mainIngredients.join(' ')}`,
+            recipeOptions
+          ).then(res => res.json());
+
+          const filteredIngredientRecipes = similarResponse.results
+            ?.filter(recipe => recipe.id !== parseInt(id))
+            ?.slice(0, 4);
+
+          setTargetIngrediantRecipes(filteredIngredientRecipes || []);
         }
-      } catch (mainError) {
-        console.error('Main error fetching recipe:', mainError);
-        
-        // Fallback to list endpoint if direct lookup fails
-        try {
-          console.log('Trying fallback to list endpoint');
-          const listResponse = await fetchData(
-            'https://tasty.p.rapidapi.com/recipes/list',
-            {
-              ...baseOptions,
-              params: {
-                from: '0',
-                size: '1',
-                id: id
-              }
-            }
-          );
-          
-          console.log('List response:', listResponse);
-          
-          if (listResponse?.results?.[0]) {
-            setRecipeDetail(listResponse.results[0]);
-          } else {
-            setError('Recipe not found');
+
+        // Fetch YouTube videos
+        const searchTerm = `${recipeDetailData.name} recipe`;
+        const youtubeOptions = {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': '193af496famshd53dbfc9801ee71p12b3e3jsn2593c500ab6f',
+            'x-rapidapi-host': 'youtube-search-and-download.p.rapidapi.com'
           }
-        } catch (fallbackError) {
-          console.error('Fallback error:', fallbackError);
-          setError('Recipe not found');
-        }
-      } finally {
-        setIsLoading(false);
+        };
+
+        const videoResponse = await fetch(
+          `https://youtube-search-and-download.p.rapidapi.com/search?query=${encodeURIComponent(searchTerm)}`,
+          youtubeOptions
+        ).then(res => res.json());
+
+        setRecipeVideos(videoResponse.contents || []);
+
+      } catch (error) {
+        console.error('Error fetching recipe data:', error);
       }
     };
 
@@ -122,66 +78,22 @@ const RecipeDetail = () => {
     }
   }, [id]);
 
-  if (isLoading) {
-    return (
-      <Box 
-        display="flex" 
-        justifyContent="center" 
-        alignItems="center" 
-        minHeight="60vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box 
-        display="flex" 
-        justifyContent="center" 
-        alignItems="center" 
-        minHeight="60vh"
-      >
-        <Typography color="error" variant="h4">
-          {error}
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (!recipeDetail) {
-    return (
-      <Box 
-        display="flex" 
-        justifyContent="center" 
-        alignItems="center" 
-        minHeight="60vh"
-      >
-        <Typography variant="h4">
-          Recipe not found
-        </Typography>
-      </Box>
-    );
-  }
+  if (!recipeDetail) return <div>Loading...</div>;
 
   return (
-    <Box sx={{ mt: { lg: '96px', xs: '60px' } }}>
+    <Box>
       <Detail recipeDetail={recipeDetail} />
-      {recipeVideos.length > 0 && (
-        <Recentarticles
-          articles={Recentarticles} 
-          name={recipeDetail.name} 
-        />
-      )}
-      {similarRecipes.length > 0 && (
-        <SimilarRecipes 
-          recipes={similarRecipes}
-          category={recipeDetail.tags?.[0]?.name || 'Related Recipes'} 
-        />
-      )}
+      <RecipeVideos recipeVideos={recipeVideos} name={recipeDetail.name} />
+      <SimilarRecipes 
+        targetIngrediantRecipes={targetIngrediantRecipes}
+      />
     </Box>
   );
 };
 
 export default RecipeDetail;
+
+
+
+
+
